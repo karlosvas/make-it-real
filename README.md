@@ -1,54 +1,57 @@
 # Make It Real (MIR)
 
-**LeetCode de gameplay para Unreal Engine.** Ejercicios cortos con la API de Unreal en C++: escribes el código, pulsas **Ejecutar** y ves en 3D cómo el monigote lo prueba en varios escenarios (✓/✕).
+**LeetCode-style gameplay exercises for Unreal Engine.** Short challenges using Unreal's C++ API: write the code, hit **Run**, and watch in 3D how the character tries it out across several scenarios (✓/✕).
+
+**Live:** https://make-it-real-nine.vercel.app (the app UI and exercises are in Spanish).
 
 ```
 ┌──────────────┬─────────────────────┬──────────────────────────┐
-│  Enunciado   │  Door.cpp  (Monaco) │   Visor 3D (three.js)    │
-│  Pistas      │                     │   ▶ ─────●──── 1x        │
-│  Chuleta API │  bool ADoor::...    ├──────────────────────────┤
-│              │                     │ ✓ Desde delante          │
-│              │                     │ ✕ Desde detrás           │
+│  Statement   │  Door.cpp  (Monaco) │   3D viewer (three.js)   │
+│  Hints       │                     │   ▶ ─────●──── 1x        │
+│  API sheet   │  bool ADoor::...    ├──────────────────────────┤
+│              │                     │ ✓ From the front         │
+│              │                     │ ✕ From behind            │
 └──────────────┴─────────────────────┴──────────────────────────┘
 ```
 
-## Arrancar
+## Getting started
 
-Requisitos: `clang++` con el target `wasm32` + `wasm-ld` (el clang normal de Linux ya los trae), Rust y pnpm.
+Requirements: `clang++` with the `wasm32` target + `wasm-ld` (the regular Linux clang already ships both), Rust and pnpm.
 
 ```bash
-./scripts/dev.sh     # desarrollo: mir-server :8787 + Astro :4321  → abre http://localhost:4321
-./scripts/serve.sh   # todo servido por mir-server              → abre http://127.0.0.1:8787
+./scripts/dev.sh     # development: mir-server :8787 + Astro :4321  → open http://localhost:4321
+./scripts/serve.sh   # everything served by mir-server             → open http://127.0.0.1:8787
 ```
 
-## Desplegar en Vercel
+## Deploying to Vercel
 
-Se despliega como contenedor (`Dockerfile.vercel`): servidor Rust + clang + la web.
+It is deployed as a container (`Dockerfile.vercel`): Rust server + clang + the website.
 
 ```bash
 vercel deploy --prod --yes
 ```
 
-Variables (entorno Production): `MIR_GITHUB_CLIENT_ID`, `MIR_GITHUB_CLIENT_SECRET`, `MIR_PUBLIC_URL` y la base de datos Upstash Redis del Marketplace (`KV_REST_API_URL`, `KV_REST_API_TOKEN`).
+Environment variables (Production): `MIR_GITHUB_CLIENT_ID`, `MIR_GITHUB_CLIENT_SECRET`, `MIR_PUBLIC_URL`, plus the Upstash Redis database from the Vercel Marketplace (`KV_REST_API_URL`, `KV_REST_API_TOKEN`). See `.env.example`.
 
-## Cómo funciona
+## How it works
 
-1. La web (Astro + Tailwind + isla React con Monaco y three.js) manda tu C++ a `POST /api/run`.
-2. **mir-server** (Rust, axum) lo compila con `clang++ --target=wasm32` contra un **mini-Unreal** (`sdk/include`: `FVector`, `FRotator`, `FMath`, `TArray`, `FString`, `UE_LOG`, `AActor`, `ACharacter`, timers, `DrawDebug*`…) en ~0,2 s.
-3. Ejecuta el wasm con **wasmi** (intérprete con "combustible": un bucle infinito se corta, no cuelga nada) dentro de un **mundo simulado**: movimiento tipo `CharacterMovement`, colisiones con puertas y paredes, llaves, etc.
-4. Cada escenario graba una **traza** (posiciones por frame, eventos, logs, debug draws), y una función Rust comprueba si tu código ha hecho lo correcto.
-5. La web reproduce la traza en 3D y enseña ✓/✕ con un mensaje claro.
+1. The website (Astro + Tailwind + a React island with Monaco and three.js) sends your C++ to `POST /api/run`.
+2. **mir-server** (Rust, axum) compiles it with `clang++ --target=wasm32` against a **mini-Unreal** (`sdk/include`: `FVector`, `FRotator`, `FMath`, `TArray`, `FString`, `UE_LOG`, `AActor`, `ACharacter`, timers, `DrawDebug*`…) in ~0.2 s.
+3. It runs the wasm with **wasmi** (an interpreter with "fuel": an infinite loop gets cut off instead of hanging anything) inside a **simulated world**: `CharacterMovement`-style movement, collisions with doors and walls, keys, and so on.
+4. Each scenario records a **trace** (per-frame positions, events, logs, debug draws), and a Rust check decides whether your code did the right thing.
+5. The website replays the trace in 3D and shows ✓/✕ with a clear message.
 
-Lo que escribes es C++ de Unreal de verdad: mismos nombres, firmas y comportamiento (p. ej. `FInterpTo`, `SetTimer` reemplazando el handle, `Array index out of bounds`…). Lo puedes pegar en un proyecto de Unreal.
+What you write is real Unreal C++: same names, signatures and behaviour (e.g. `FInterpTo`, `SetTimer` replacing the handle, `Array index out of bounds`…). You can paste it into an Unreal project.
 
-## Estructura
+## Project layout
 
 ```
-sdk/include/        mini-Unreal (cabeceras con las mismas rutas que en UE: GameFramework/Actor.h…)
-sdk/runtime/        implementación: memoria, printf, actores→imports "ue.*", timers, exports
-exercises/NN-xxx/   un ejercicio: exercise.json, enunciado.md, plantillas, solution/, glue.cpp
-crates/mir-server/  servidor Rust: compile.rs, sim/ (mundo, host wasm, runner), exercises/ (escenarios)
-web/                Astro: páginas, ExerciseApp (React), CodeEditor (Monaco), Viewer3D (three.js)
+sdk/include/        mini-Unreal (headers with the same paths as in UE: GameFramework/Actor.h…)
+sdk/runtime/        implementation: memory, printf, actors → "ue.*" imports, timers, exports
+exercises/NN-xxx/   one exercise: exercise.json, enunciado.md, templates, solution/, glue.cpp
+crates/mir-server/  Rust server: compile.rs, sim/ (world, wasm host, runner), exercises/ (scenarios),
+                    auth.rs + store.rs (GitHub login and progress)
+web/                Astro: pages, ExerciseApp (React), CodeEditor (Monaco), Viewer3D (three.js)
 ```
 
 ## Tests
@@ -57,8 +60,8 @@ web/                Astro: páginas, ExerciseApp (React), CodeEditor (Monaco), V
 cargo test
 ```
 
-Comprueba, para **cada ejercicio**, que la solución pasa todos los escenarios y que la plantilla compila pero falla alguno.
+Checks, for **every exercise**, that the solution passes all scenarios and that the template compiles but fails at least one.
 
 ---
 
-Make It Real no es Unreal Engine ni está afiliado a Epic Games: simula una parte de su API para aprender.
+Make It Real is not Unreal Engine and is not affiliated with Epic Games: it simulates part of its API for learning purposes.
