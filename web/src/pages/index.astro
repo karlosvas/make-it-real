@@ -36,7 +36,7 @@ const badge: Record<string, string> = {
         </p>
         <div class="mt-8 flex flex-wrap items-center gap-3">
           {first && (
-            <a href={`/ejercicios/${first.id}/`} class="rounded-xl bg-mir-500 px-5 py-3 font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgba(255,107,26,.7)] transition hover:bg-mir-400">
+            <a id="cta-main" href={`/ejercicios/${first.id}/`} class="rounded-xl bg-mir-500 px-5 py-3 font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgba(255,107,26,.7)] transition hover:bg-mir-400">
               Empezar por el ejercicio 1 →
             </a>
           )}
@@ -85,12 +85,15 @@ const badge: Record<string, string> = {
             <a
               href={`/ejercicios/${e.id}/`}
               data-exercise={e.id}
+              data-number={e.number}
+              data-title={e.title}
               class="group relative flex flex-col rounded-2xl border border-ink-700 bg-ink-850 p-5 transition hover:-translate-y-0.5 hover:border-ink-500 hover:bg-ink-800"
             >
               <div class="flex items-center gap-2">
                 <span class="font-mono text-xs text-ink-400">#{String(e.number).padStart(2, '0')}</span>
                 <span class={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${badge[e.difficulty] ?? ''}`}>{e.difficulty}</span>
                 <span class="solved-badge ml-auto hidden rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">✓ Resuelto</span>
+                <span class="next-badge ml-auto hidden rounded-full border border-mir-500/40 bg-mir-500/10 px-2 py-0.5 text-[11px] font-medium text-mir-300">Siguiente</span>
               </div>
               <h3 class="mt-3 font-display text-lg font-semibold text-ink-100 group-hover:text-mir-400">{e.title}</h3>
               <p class="mt-1.5 text-sm leading-relaxed text-ink-300">{e.summary}</p>
@@ -111,18 +114,40 @@ const badge: Record<string, string> = {
 
   <script>
     function refreshBadges() {
-      let solved = 0;
-      const cards = document.querySelectorAll<HTMLElement>('[data-exercise]');
-      cards.forEach((card) => {
-        let isSolved = false;
+      const cards = [...document.querySelectorAll<HTMLAnchorElement>('[data-exercise]')].sort((a, b) => Number(a.dataset.number) - Number(b.dataset.number));
+      const isSolved = (card: HTMLElement) => {
         try {
-          isSolved = localStorage.getItem(`mir:solved:${card.dataset.exercise}`) === '1';
-        } catch {}
-        card.querySelector('.solved-badge')?.classList.toggle('hidden', !isSolved);
-        if (isSolved) solved++;
+          return localStorage.getItem(`mir:solved:${card.dataset.exercise}`) === '1';
+        } catch {
+          return false;
+        }
+      };
+      const solved = cards.filter(isSolved).length;
+      // El siguiente: el primer ejercicio (por número) que aún no está resuelto.
+      const next = solved > 0 ? cards.find((c) => !isSolved(c)) : undefined;
+      cards.forEach((card) => {
+        card.querySelector('.solved-badge')?.classList.toggle('hidden', !isSolved(card));
+        card.querySelector('.next-badge')?.classList.toggle('hidden', card !== next);
+        card.classList.toggle('ring-1', card === next);
+        card.classList.toggle('ring-mir-500/50', card === next);
       });
+
       const summary = document.getElementById('progress-summary');
       if (summary) summary.textContent = solved > 0 ? `Llevas ${solved} de ${cards.length} ejercicios resueltos.` : '';
+
+      const cta = document.getElementById('cta-main') as HTMLAnchorElement | null;
+      if (cta && cards.length) {
+        if (solved === 0) {
+          cta.href = cards[0].href;
+          cta.textContent = 'Empezar por el ejercicio 1 →';
+        } else if (next) {
+          cta.href = next.href;
+          cta.textContent = `Continuar: ${next.dataset.number}. ${next.dataset.title} →`;
+        } else {
+          cta.href = cards[0].href;
+          cta.textContent = '¡Los has resuelto todos! Repasar →';
+        }
+      }
     }
     refreshBadges();
     window.addEventListener('mir:progress', refreshBadges);
