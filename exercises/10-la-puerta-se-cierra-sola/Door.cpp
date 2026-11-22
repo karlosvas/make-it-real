@@ -5,12 +5,17 @@ void ADoor::Open()
 	bIsOpen = true;
 	UE_LOG(LogTemp, Log, TEXT("Puerta abierta"));
 
-	// TODO: programa un temporizador para que se llame a Close()
-	// dentro de AutoCloseDelay segundos.
+	// TODO: dentro de AutoCloseDelay segundos se tiene que llamar a TryAutoClose().
 }
 
-void ADoor::Close()
+void ADoor::TryAutoClose()
 {
-	bIsOpen = false;
-	UE_LOG(LogTemp, Log, TEXT("Puerta cerrada"));
+	// TODO: si el paso está libre, Close().
+	// Si hay alguien en medio, vuelve a intentarlo dentro de RetryInterval segundos.
+}
+
+bool ADoor::IsDoorwayBlocked() const
+{
+	// TODO: ¿está el Monigote a menos de DoorwayRadius de la puerta?
+	return false;
 }

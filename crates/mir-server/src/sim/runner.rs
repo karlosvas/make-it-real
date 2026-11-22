@@ -92,6 +92,15 @@ impl Record {
         let start = self.first().actors[h as usize].loc;
         self.frames.iter().map(|f| f.actors[h as usize].loc.dist2d(start)).fold(0.0, f64::max)
     }
+    /// Primer frame en que el actor va a más de `max` cm/s (en el plano): (instante, velocidad).
+    /// Mide el desplazamiento real, así que también pilla los teletransportes con SetActorLocation.
+    pub fn first_over_speed(&self, h: i32, max: f64) -> Option<(f64, f64)> {
+        let dt = self.world.dt;
+        self.frames.windows(2).find_map(|w| {
+            let v = w[1].actors[h as usize].loc.dist2d(w[0].actors[h as usize].loc) / dt;
+            (v > max).then_some((w[1].t, v))
+        })
+    }
     /// Primer instante en que se cumple la condición.
     pub fn first_time(&self, mut pred: impl FnMut(&Frame) -> bool) -> Option<f64> {
         self.frames.iter().find(|f| pred(f)).map(|f| f.t)

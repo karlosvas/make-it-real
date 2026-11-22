@@ -40,6 +40,7 @@ fn ex01(door_at: V3) -> Scenario {
             Ok(())
         }),
         check: Box::new(move |r: &Record| {
+            speed_limit(r, moni, MONIGOTE_MAX_SPEED)?;
             let arrived = r.first_time(|f| f.actors[moni as usize].loc.dist2d(f.actors[door as usize].loc) <= 115.0);
             match arrived {
                 Some(t) => Ok(format!("Llega a la puerta en {t:.1} s.")),
@@ -92,6 +93,7 @@ fn ex02(door_at: V3, already_close: bool) -> Scenario {
             if r.max_displacement(moni) < 10.0 {
                 return Err("El monigote no se ha movido. ¿Te has cargado el AddMovementInput?".into());
             }
+            speed_limit(r, moni, MONIGOTE_MAX_SPEED)?;
             if min < 75.0 {
                 return Err(format!("Se ha chocado con la puerta (llegó a {} de ella).", cm(min)));
             }

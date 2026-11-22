@@ -8,6 +8,8 @@ Implementa `AGuard::Tick`:
 2. Cuando estés a menos de `AcceptanceRadius`, pasa al siguiente.
 3. Después del último, vuelve al primero.
 
+El guardia **anda**: su velocidad máxima es `MaxWalkSpeed = 300 cm/s` (ya está puesta en el constructor). Muévelo con `AddMovementInput` y deja que el `CharacterMovement` aplique esa velocidad. Teletransportarlo con `SetActorLocation` (o subirle el `MaxWalkSpeed`) no vale.
+
 ## Estado entre frames
 
 `Tick` se llama cada frame, pero las variables miembro (como `CurrentIndex`) **conservan su valor** de un frame al siguiente. Así es como un actor "recuerda" lo que estaba haciendo.

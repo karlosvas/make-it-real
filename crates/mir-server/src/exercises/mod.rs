@@ -43,6 +43,98 @@ mod tests {
             .collect()
     }
 
+    /// Teletransportar al guardia con SetActorLocation recorre los waypoints "en orden", pero no vale.
+    #[test]
+    fn patrol_rejects_teleport() {
+        let code = r#"#include "Guard.h"
+AGuard::AGuard() { PrimaryActorTick.bCanEverTick = true; GetCharacterMovement()->MaxWalkSpeed = 300.f; }
+void AGuard::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    if (Waypoints.Num() == 0) return;
+    SetActorLocation(Waypoints[CurrentIndex]->GetActorLocation());
+    CurrentIndex = (CurrentIndex + 1) % Waypoints.Num();
+}
+"#;
+        let files = HashMap::from([("Guard.cpp".to_string(), code.to_string())]);
+        match run_exercise(&exercise::root(), "08-patrulla", &files).unwrap() {
+            RunOutcome::Ran { scenarios, .. } => {
+                for s in scenarios.iter().filter(|s| s.id != "sin-puntos") {
+                    assert!(!s.passed, "{}: el teletransporte no debería pasar", s.id);
+                    assert!(s.message.contains("teletransportado"), "{}: mensaje inesperado: {}", s.id, s.message);
+                }
+            }
+            RunOutcome::CompileError { log, .. } => panic!("no compila:\n{log}"),
+        }
+    }
+
+    /// Puerta automática (10): cada error típico falla donde toca y con un mensaje que lo explica.
+    /// `None` = ese escenario tiene que pasar; `Some(texto)` = tiene que fallar con un mensaje que contenga `texto`.
+    #[test]
+    fn auto_door_catches_common_mistakes() {
+        const BLOCKED: &str = "bool ADoor::IsDoorwayBlocked() const { return Monigote && GetHorizontalDistanceTo(Monigote) < DoorwayRadius; }\n";
+        let cases: &[(&str, &str, [Option<&str>; 4])] = &[
+            (
+                "el temporizador llama a Close() directamente",
+                "void ADoor::Open() { bIsOpen = true; GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::Close, AutoCloseDelay, false); }\n\
+                 void ADoor::TryAutoClose() {}\n",
+                [None, None, Some("encima del monigote"), Some("encima del monigote")],
+            ),
+            (
+                "un FTimerHandle nuevo en cada Open()",
+                "void ADoor::Open() { bIsOpen = true; FTimerHandle H; GetWorldTimerManager().SetTimer(H, this, &ADoor::TryAutoClose, AutoCloseDelay, false); }\n\
+                 void ADoor::TryAutoClose() { if (IsDoorwayBlocked()) { FTimerHandle H; GetWorldTimerManager().SetTimer(H, this, &ADoor::TryAutoClose, RetryInterval, false); } else { Close(); } }\n",
+                [None, Some("primer Open()"), None, Some("reintento pendiente")],
+            ),
+            (
+                "no lo vuelve a intentar",
+                "void ADoor::Open() { bIsOpen = true; GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::TryAutoClose, AutoCloseDelay, false); }\n\
+                 void ADoor::TryAutoClose() { if (!IsDoorwayBlocked()) { Close(); } }\n",
+                [None, None, Some("abierta para siempre"), None],
+            ),
+            (
+                "reintenta con AutoCloseDelay",
+                "void ADoor::Open() { bIsOpen = true; GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::TryAutoClose, AutoCloseDelay, false); }\n\
+                 void ADoor::TryAutoClose() { if (IsDoorwayBlocked()) { GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::TryAutoClose, AutoCloseDelay, false); } else { Close(); } }\n",
+                [None, None, Some("después de que se apartara"), None],
+            ),
+            (
+                "reintento en otro handle que Open() no cancela",
+                "static FTimerHandle RetryHandle;\n\
+                 void ADoor::Open() { bIsOpen = true; GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::TryAutoClose, AutoCloseDelay, false); }\n\
+                 void ADoor::TryAutoClose() { if (IsDoorwayBlocked()) { GetWorldTimerManager().SetTimer(RetryHandle, this, &ADoor::TryAutoClose, RetryInterval, false); } else { Close(); } }\n",
+                [None, None, None, Some("reintento pendiente")],
+            ),
+            (
+                "temporizador en bucle sin ClearTimer",
+                "void ADoor::Open() { bIsOpen = true; GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::TryAutoClose, RetryInterval, true, AutoCloseDelay); }\n\
+                 void ADoor::TryAutoClose() { if (!IsDoorwayBlocked()) { Close(); } }\n",
+                [Some("ClearTimer"), Some("ClearTimer"), Some("ClearTimer"), Some("ClearTimer")],
+            ),
+            (
+                "temporizador en bucle con ClearTimer (otra solución válida)",
+                "void ADoor::Open() { bIsOpen = true; GetWorldTimerManager().SetTimer(CloseTimerHandle, this, &ADoor::TryAutoClose, RetryInterval, true, AutoCloseDelay); }\n\
+                 void ADoor::TryAutoClose() { if (!IsDoorwayBlocked()) { GetWorldTimerManager().ClearTimer(CloseTimerHandle); Close(); } }\n",
+                [None, None, None, None],
+            ),
+        ];
+        let ids = ["se-cierra-sola", "reabrir", "alguien-en-medio", "reabrir-mientras-espera"];
+        for (what, body, expected) in cases {
+            let code = format!("#include \"Door.h\"\n{body}{BLOCKED}");
+            let files = HashMap::from([("Door.cpp".to_string(), code)]);
+            let RunOutcome::Ran { scenarios, .. } = run_exercise(&exercise::root(), "10-la-puerta-se-cierra-sola", &files).unwrap() else {
+                panic!("{what}: no compila");
+            };
+            for (id, want) in ids.iter().zip(expected) {
+                let s = scenarios.iter().find(|s| s.id == *id).unwrap();
+                match want {
+                    None => assert!(s.passed, "{what} / {id}: debería pasar, pero: {}", s.message),
+                    Some(text) => assert!(!s.passed && s.message.contains(text), "{what} / {id}: se esperaba un fallo con «{text}», pero: {}", s.message),
+                }
+            }
+        }
+    }
+
     /// Para cada ejercicio: la solución pasa todos los escenarios y la plantilla compila pero falla alguno.
     #[test]
     fn every_exercise_solution_passes_and_template_fails() {

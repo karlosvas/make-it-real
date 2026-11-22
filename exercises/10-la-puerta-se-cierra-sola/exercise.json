@@ -3,7 +3,7 @@
   "number": 10,
   "title": "La puerta se cierra sola",
   "difficulty": "Difícil",
-  "summary": "Temporizadores de Unreal: SetTimer, FTimerHandle y punteros a métodos. ¿Qué pasa si la abres dos veces?",
+  "summary": "Temporizadores de Unreal: SetTimer, reintentos y FTimerHandle. Una puerta automática que no se cierra encima de nadie.",
   "files": [
     { "name": "Door.cpp", "editable": true },
     { "name": "Door.h", "editable": false },
@@ -11,12 +11,15 @@
   ],
   "scenarios": [
     { "id": "se-cierra-sola", "name": "Se cierra sola" },
-    { "id": "reabrir", "name": "Abrir otra vez antes de que se cierre" }
+    { "id": "reabrir", "name": "Abrir otra vez antes de que se cierre" },
+    { "id": "alguien-en-medio", "name": "Alguien en medio de la puerta" },
+    { "id": "reabrir-mientras-espera", "name": "Abrir otra vez mientras espera" }
   ],
   "hints": [
-    "GetWorldTimerManager().SetTimer(Handle, this, &ADoor::Close, Segundos, false);",
-    "El último parámetro es bLoop: con false se llama una sola vez.",
-    "Reutiliza siempre el mismo FTimerHandle (CloseTimerHandle): si ya había un temporizador, SetTimer lo reinicia."
+    "Open() no llama a Close(): programa un temporizador que llame a &ADoor::TryAutoClose dentro de AutoCloseDelay segundos.",
+    "En TryAutoClose(): si IsDoorwayBlocked(), vuelve a programar el temporizador con RetryInterval (sí, desde dentro del propio TryAutoClose). Si no, Close().",
+    "IsDoorwayBlocked(): comprueba que Monigote no sea nullptr y compara GetHorizontalDistanceTo(Monigote) con DoorwayRadius.",
+    "Usa el mismo CloseTimerHandle para la cuenta atrás y para los reintentos: así cada Open() reemplaza lo que hubiera pendiente."
   ],
-  "api": ["AActor::GetWorldTimerManager", "FTimerManager::SetTimer", "FTimerManager::ClearTimer", "FTimerHandle", "UE_LOG"]
+  "api": ["AActor::GetWorldTimerManager", "FTimerManager::SetTimer", "FTimerManager::ClearTimer", "FTimerManager::IsTimerActive", "FTimerHandle", "AActor::GetHorizontalDistanceTo", "nullptr", "UE_LOG"]
 }

@@ -1,6 +1,6 @@
 //! Piezas compartidas por los escenarios de los ejercicios.
 
-use crate::sim::runner::{CheckFn, Ctx, ScriptFn};
+use crate::sim::runner::{CheckFn, Ctx, Record, ScriptFn};
 use crate::sim::world::{V3, unwind};
 
 // Ids de funciones de mir_call (deben coincidir con cada glue.cpp).
@@ -14,6 +14,7 @@ pub const FN_CLOSE: i32 = 5;
 pub const WIRE_TARGET_DOOR: i32 = 1;
 pub const WIRE_KEY: i32 = 2;
 pub const WIRE_WAYPOINT: i32 = 3;
+pub const WIRE_MONIGOTE: i32 = 4;
 
 pub const GREEN: &str = "#4ade80";
 pub const RED: &str = "#f87171";
@@ -21,6 +22,10 @@ pub const YELLOW: &str = "#facc15";
 pub const BLUE: &str = "#60a5fa";
 
 pub const WALK_SPEED: f64 = 260.0;
+
+/// MaxWalkSpeed por defecto del monigote (ACharacter) y el del guardia del 08.
+pub const MONIGOTE_MAX_SPEED: f64 = 400.0;
+pub const GUARD_MAX_SPEED: f64 = 300.0;
 
 pub fn yaw_towards(from: V3, to: V3) -> f64 {
     (to - from).yaw()
@@ -132,6 +137,21 @@ pub fn expect_door(expected: bool, _situation: &'static str) -> CheckFn {
         None => Err("El monigote no llegó a intentar abrir la puerta.".into()),
         Some((_, allowed)) if allowed == expected => Ok(if expected { "La puerta se abre, como debe.".into() } else { "La puerta no se abre, como debe.".into() }),
         Some((_, allowed)) => Err(if allowed { "La puerta se ha abierto, pero no debería.".into() } else { "La puerta no se ha abierto, pero debería.".into() }),
+    })
+}
+
+/// Falla si `h` ha ido más rápido que `max` cm/s (con margen para los empujones de las colisiones).
+/// Así no vale teletransportar al personaje con SetActorLocation ni subirle el MaxWalkSpeed.
+pub fn speed_limit(r: &Record, h: i32, max: f64) -> Result<(), String> {
+    let Some((t, top)) = r.first_over_speed(h, max * 1.15 + 1.0) else { return Ok(()) };
+    let who = r.name(h).to_lowercase();
+    Err(if top > max * 3.0 {
+        format!(
+            "A los {t:.1} s el {who} ha saltado a {top:.0} cm/s: se ha teletransportado. Su velocidad máxima es {max:.0} cm/s (MaxWalkSpeed). \
+             No uses SetActorLocation: muévelo con AddMovementInput y deja que el CharacterMovement aplique la velocidad."
+        )
+    } else {
+        format!("A los {t:.1} s el {who} va a {top:.0} cm/s, pero su velocidad máxima es {max:.0} cm/s (MaxWalkSpeed). No toques MaxWalkSpeed.")
     })
 }
 

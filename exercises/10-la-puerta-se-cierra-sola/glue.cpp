@@ -13,7 +13,10 @@ AActor* MirCreateActor(int32 ClassId)
 	}
 }
 
-void MirWire(int32, int32, int32) {}
+void MirWire(int32 Slot, int32 A, int32 B)
+{
+	if (Slot == 4) { MirGet<ADoor>(A)->Monigote = MirActor(B); }
+}
 
 int32 MirCall(int32 Function, int32 A, int32)
 {
