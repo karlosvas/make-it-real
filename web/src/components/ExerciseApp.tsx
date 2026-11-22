@@ -64,10 +64,67 @@ export default function ExerciseApp({ exercise, prev, next }: Props) {
   const [solved, setSolved] = useState(false);
   const [netError, setNetError] = useState<string | null>(null);
   const [dialog, ask] = useConfirm();
+  const [vimMode, setVimMode] = useState(() => {
+    try {
+      return localStorage.getItem('mir:editor-mode') === 'vim';
+    } catch {
+      return false;
+    }
+  });
+  const chooseMode = (vim: boolean) => {
+    setVimMode(vim);
+    try {
+      localStorage.setItem('mir:editor-mode', vim ? 'vim' : 'vscode');
+    } catch {}
+  };
+  const statementRef = useRef<HTMLElement>(null);
   const codeRef = useRef(code);
   codeRef.current = code;
 
   useEffect(() => setSolved(isSolved(exercise.id)), [exercise.id]);
+
+  // Botón "Copiar" en cada bloque de código del enunciado.
+  useEffect(() => {
+    const root = statementRef.current;
+    if (!root) return;
+    root.querySelectorAll('pre').forEach((pre) => {
+      if (pre.parentElement?.classList.contains('mir-code-block')) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'mir-code-block';
+      pre.replaceWith(wrap);
+      const head = document.createElement('div');
+      head.className = 'mir-code-head';
+      head.innerHTML = '<span>C++</span>';
+      wrap.appendChild(head);
+      wrap.appendChild(pre);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mir-copy-btn';
+      btn.title = 'Copiar al portapapeles';
+      const idle = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>Copiar</span>';
+      btn.innerHTML = idle;
+      btn.addEventListener('click', async () => {
+        const text = (pre.querySelector('code') ?? pre).textContent?.replace(/\n$/, '') ?? '';
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg><span>¡Copiado!</span>';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = idle;
+        }, 1600);
+      });
+      head.appendChild(btn);
+    });
+  });
 
   // Al sincronizar con la cuenta de GitHub, cargar el código guardado en el servidor
   // (salvo que ya hayas empezado a escribir).
@@ -287,7 +344,7 @@ export default function ExerciseApp({ exercise, prev, next }: Props) {
               <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-5">
                 {leftTab === 'enunciado' && (
                   <>
-                    <article className="prose-mir" dangerouslySetInnerHTML={{ __html: exercise.statementHtml }} />
+                    <article ref={statementRef} className="prose-mir" dangerouslySetInnerHTML={{ __html: exercise.statementHtml }} />
                     <h3 className="mt-6 mb-2 font-display text-sm font-semibold text-ink-100">Escenarios que se prueban</h3>
                     <ul className="space-y-1.5">
                       {exercise.scenarios.map((s, i) => {
@@ -348,7 +405,8 @@ export default function ExerciseApp({ exercise, prev, next }: Props) {
               storageKey="mir:split:mid"
               first={
                 <section className="flex h-full flex-col bg-ink-950">
-                  <nav className="scroll-thin flex shrink-0 gap-px overflow-x-auto border-b border-ink-800 bg-ink-900">
+                  <div className="flex shrink-0 items-stretch border-b border-ink-800 bg-ink-900">
+                  <nav className="scroll-thin flex min-w-0 flex-1 gap-px overflow-x-auto">
                     {files.map((f) => (
                       <button
                         key={f.name}
@@ -365,8 +423,28 @@ export default function ExerciseApp({ exercise, prev, next }: Props) {
                       </button>
                     ))}
                   </nav>
+                  <div className="flex shrink-0 items-center gap-0.5 border-l border-ink-800 px-2" role="group" aria-label="Modo del editor">
+                    {([
+                      ['vscode', 'VS Code', 'Editor normal, como VS Code'],
+                      ['vim', 'Vim', 'Modo Vim/Neovim: i para escribir, Esc, yy, p, dd… :w ejecuta'],
+                    ] as const).map(([mode, label, title]) => {
+                      const on = (mode === 'vim') === vimMode;
+                      return (
+                        <button
+                          key={mode}
+                          onClick={() => chooseMode(mode === 'vim')}
+                          title={title}
+                          aria-pressed={on}
+                          className={`rounded-md px-2 py-1 font-mono text-[11px] transition ${on ? 'bg-ink-700 text-ink-100' : 'text-ink-400 hover:text-ink-200'}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  </div>
                   <div className="min-h-0 flex-1">
-                    <CodeEditor exerciseId={exercise.id} files={files} active={active} diagnostics={diagnostics} onChange={onChange} onRun={run} />
+                    <CodeEditor exerciseId={exercise.id} files={files} active={active} diagnostics={diagnostics} onChange={onChange} onRun={run} vim={vimMode} />
                   </div>
                 </section>
               }

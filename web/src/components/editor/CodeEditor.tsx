@@ -16,9 +16,12 @@ interface Props {
   diagnostics: Diagnostic[];
   onChange: (name: string, value: string) => void;
   onRun: () => void;
+  /** Modo de edición: como VS Code (normal) o como Vim/Neovim. */
+  vim?: boolean;
 }
 
-export default function CodeEditor({ exerciseId, files, active, diagnostics, onChange, onRun }: Props) {
+export default function CodeEditor({ exerciseId, files, active, diagnostics, onChange, onRun, vim = false }: Props) {
+  const statusRef = useRef<HTMLDivElement>(null);
   const host = useRef<HTMLDivElement>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const models = useRef(new Map<string, MonacoEditor.ITextModel>());
@@ -98,6 +101,28 @@ export default function CodeEditor({ exerciseId, files, active, diagnostics, onC
     ed.updateOptions({ readOnly: !!file?.readOnly, domReadOnly: !!file?.readOnly });
   }, [active, files]);
 
+  // Modo Vim (monaco-vim): se carga solo si se activa.
+  useEffect(() => {
+    const ed = editorRef.current;
+    if (!vim || !ed || !statusRef.current) return;
+    let disposed = false;
+    let session: { dispose: () => void } | null = null;
+    import('monaco-vim').then(({ initVimMode, VimMode }) => {
+      if (disposed) return;
+      session = initVimMode(ed, statusRef.current);
+      // :w ejecuta el código (como "guardar y probar").
+      const Vim = (VimMode as unknown as { Vim: { defineEx: (name: string, prefix: string, fn: () => void) => void } }).Vim;
+      Vim.defineEx('write', 'w', () => onRunRef.current());
+      Vim.defineEx('run', 'run', () => onRunRef.current());
+      ed.focus();
+    });
+    return () => {
+      disposed = true;
+      session?.dispose();
+      ed.updateOptions({ cursorStyle: 'line' });
+    };
+  }, [vim]);
+
   // Errores del compilador como marcas en el editor.
   useEffect(() => {
     const monaco = setupMonaco();
@@ -116,5 +141,13 @@ export default function CodeEditor({ exerciseId, files, active, diagnostics, onC
     }
   }, [diagnostics, files]);
 
-  return <div ref={host} className="h-full w-full" />;
+  return (
+    <div className="flex h-full w-full flex-col">
+      <div ref={host} className="min-h-0 w-full flex-1" />
+      <div
+        ref={statusRef}
+        className={`mir-vim-status shrink-0 border-t border-ink-800 bg-ink-900 px-3 py-1 font-mono text-xs text-ink-300 ${vim ? 'flex' : 'hidden'}`}
+      />
+    </div>
+  );
 }
