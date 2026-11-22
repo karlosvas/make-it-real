@@ -1,0 +1,16 @@
+# Compilación
+/target
+web/node_modules
+web/dist
+web/.astro
+
+# Datos y secretos locales
+/data
+.env*
+!.env.example
+.vercel
+
+# Notas para Claude Code
+.claude/
+
+.DS_Store

@@ -1,0 +1,23 @@
+{
+  "id": "02-para-a-un-metro",
+  "number": 2,
+  "title": "Para a un metro",
+  "difficulty": "Fácil",
+  "summary": "El monigote se estampa contra la puerta. Usa la distancia para que se pare a 1 m.",
+  "files": [
+    { "name": "Monigote.cpp", "editable": true },
+    { "name": "Monigote.h", "editable": false },
+    { "name": "Door.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "delante", "name": "Puerta delante" },
+    { "id": "en-diagonal", "name": "En diagonal" },
+    { "id": "ya-esta-cerca", "name": "Ya está cerca" }
+  ],
+  "hints": [
+    "ToDoor.Size() es la longitud del vector: la distancia hasta la puerta en cm. También tienes FVector::Dist(A, B).",
+    "Si la distancia es 100 o menos, sal del Tick con return antes de llamar a AddMovementInput.",
+    "En el escenario \"Ya está cerca\" el monigote empieza a menos de 1 m: no debería moverse nada."
+  ],
+  "api": ["FVector::Size", "FVector::Dist", "APawn::AddMovementInput", "UE_LOG"]
+}

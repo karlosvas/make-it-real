@@ -1,0 +1,7 @@
+--target=wasm32
+-std=c++20
+-nostdinc
+-fno-exceptions
+-fno-rtti
+-Isdk/include
+-xc++

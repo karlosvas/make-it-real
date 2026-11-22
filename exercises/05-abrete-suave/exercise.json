@@ -1,0 +1,22 @@
+{
+  "id": "05-abrete-suave",
+  "number": 5,
+  "title": "Ábrete con suavidad",
+  "difficulty": "Media",
+  "summary": "La puerta salta 90° de golpe. Anímala en el Tick con FMath::FInterpTo y SetRelativeRotation.",
+  "files": [
+    { "name": "Door.cpp", "editable": true },
+    { "name": "Door.h", "editable": false },
+    { "name": "Monigote.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "abrir", "name": "Abrir" },
+    { "id": "abrir-y-cerrar", "name": "Abrir y cerrar" }
+  ],
+  "hints": [
+    "FMath::FInterpTo(Actual, Objetivo, DeltaSeconds, Velocidad) devuelve el nuevo valor: guárdalo en CurrentYaw.",
+    "Usa OpenSpeed como velocidad: con 3 tarda ~1,5 s en abrirse casi del todo.",
+    "No te olvides de pasar DeltaSeconds: así la animación va igual de rápida a 30 o a 120 FPS."
+  ],
+  "api": ["FMath::FInterpTo", "FMath::FInterpConstantTo", "USceneComponent::SetRelativeRotation", "FRotator", "AActor::Tick"]
+}

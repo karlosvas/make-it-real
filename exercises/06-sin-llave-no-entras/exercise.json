@@ -1,0 +1,25 @@
+{
+  "id": "06-sin-llave-no-entras",
+  "number": 6,
+  "title": "Sin llave no entras",
+  "difficulty": "Media",
+  "summary": "Guarda estado en el monigote (bHasKey) y úsalo desde la puerta. Dos archivos que trabajan juntos.",
+  "files": [
+    { "name": "Monigote.cpp", "editable": true },
+    { "name": "Door.cpp", "editable": true },
+    { "name": "Monigote.h", "editable": false },
+    { "name": "Door.h", "editable": false },
+    { "name": "Key.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "sin-llave", "name": "Sin llave" },
+    { "id": "con-llave", "name": "Con llave" },
+    { "id": "con-llave-por-detras", "name": "Con llave, por detrás" }
+  ],
+  "hints": [
+    "En Monigote.cpp, OnKeyPickedUp solo tiene que poner bHasKey a true.",
+    "En Door.cpp tienes Who->HasKey(): úsalo junto a la comprobación de \"delante\".",
+    "Mira las dos pestañas: Monigote.cpp y Door.cpp se editan las dos."
+  ],
+  "api": ["FVector::DotProduct", "AActor::GetActorForwardVector", "AActor::GetName", "UE_LOG"]
+}

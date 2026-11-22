@@ -1,0 +1,22 @@
+{
+  "id": "08-patrulla",
+  "number": 8,
+  "title": "Patrulla",
+  "difficulty": "Difícil",
+  "summary": "Un guardia que recorre waypoints en bucle: estado entre frames, TArray y el operador %.",
+  "files": [
+    { "name": "Guard.cpp", "editable": true },
+    { "name": "Guard.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "cuadrado", "name": "Cuadrado" },
+    { "id": "triangulo", "name": "Triángulo" },
+    { "id": "sin-puntos", "name": "Sin waypoints" }
+  ],
+  "hints": [
+    "CurrentIndex guarda a qué punto vas. Sobrevive entre frames porque es una variable miembro.",
+    "Para pasar al siguiente y volver al 0 después del último: CurrentIndex = (CurrentIndex + 1) % Waypoints.Num();",
+    "Si Waypoints.Num() es 0, sal del Tick antes de hacer Waypoints[CurrentIndex] (y antes del %: ¡dividir entre 0!)."
+  ],
+  "api": ["TArray::Num", "AActor::GetActorLocation", "FVector::Size2D", "FVector::GetSafeNormal2D", "APawn::AddMovementInput"]
+}

@@ -1,0 +1,36 @@
+# Make It Real en Vercel: un contenedor con mir-server (Rust) + clang/wasm-ld + la web ya construida.
+
+# ---------- Web (Astro + Tailwind) ----------
+FROM node:24-slim AS web
+RUN npm install -g pnpm@11
+WORKDIR /src
+COPY exercises ./exercises
+COPY web/package.json web/pnpm-lock.yaml ./web/
+RUN cd web && pnpm install --frozen-lockfile
+COPY web ./web
+RUN cd web && pnpm build
+
+# ---------- Servidor (Rust) ----------
+FROM rust:1-trixie AS server
+WORKDIR /src
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+RUN cargo build --release -p mir-server
+
+# ---------- Imagen final ----------
+FROM debian:trixie-slim
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends clang lld ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && clang++ --print-targets | grep -q wasm32 \
+ && command -v wasm-ld
+WORKDIR /app
+COPY sdk ./sdk
+COPY exercises ./exercises
+COPY --from=web /src/web/dist ./web/dist
+COPY --from=server /src/target/release/mir-server /usr/local/bin/mir-server
+ENV MIR_ROOT=/app \
+    MIR_HOST=0.0.0.0 \
+    PORT=80
+EXPOSE 80
+CMD ["mir-server"]

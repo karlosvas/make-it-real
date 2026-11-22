@@ -1,0 +1,10 @@
+target
+web/node_modules
+web/dist
+web/.astro
+data
+.env
+.env.*
+!.env.example
+.vercel
+.git

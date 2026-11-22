@@ -1,0 +1,24 @@
+{
+  "id": "03-solo-desde-delante",
+  "number": 3,
+  "title": "Solo desde delante",
+  "difficulty": "Fácil",
+  "summary": "La puerta solo se puede abrir si el monigote está delante. Producto escalar.",
+  "files": [
+    { "name": "Door.cpp", "editable": true },
+    { "name": "Door.h", "editable": false },
+    { "name": "Monigote.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "delante", "name": "Desde delante" },
+    { "id": "detras", "name": "Desde detrás" },
+    { "id": "diagonal-delante", "name": "En diagonal por delante" },
+    { "id": "diagonal-detras", "name": "En diagonal por detrás" }
+  ],
+  "hints": [
+    "GetActorForwardVector() es un vector de longitud 1 que apunta hacia el lado de DELANTE de la puerta.",
+    "Calcula la dirección desde la puerta hasta el monigote: Who->GetActorLocation() - GetActorLocation().",
+    "FVector::DotProduct(A, B) es positivo si A y B apuntan más o menos hacia el mismo lado, y negativo si apuntan hacia lados opuestos."
+  ],
+  "api": ["AActor::GetActorLocation", "AActor::GetActorForwardVector", "FVector::DotProduct", "FVector::GetSafeNormal"]
+}

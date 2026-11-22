@@ -1,0 +1,24 @@
+{
+  "id": "07-la-llave-mas-cercana",
+  "number": 7,
+  "title": "La llave más cercana",
+  "difficulty": "Media",
+  "summary": "Recorre un TArray de punteros y quédate con el más cercano. Y no te olvides del array vacío.",
+  "files": [
+    { "name": "Monigote.cpp", "editable": true },
+    { "name": "Monigote.h", "editable": false },
+    { "name": "Key.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "tres-llaves", "name": "Tres llaves" },
+    { "id": "la-ultima", "name": "La más cercana es la última" },
+    { "id": "una-llave", "name": "Una sola llave" },
+    { "id": "sin-llaves", "name": "Sin llaves" }
+  ],
+  "hints": [
+    "Recorre el array con: for (AKey* Key : Keys) { ... }",
+    "Guarda la mejor llave hasta ahora y su distancia. Si la actual está más cerca, reemplázala.",
+    "No empieces con Keys[0]: si el array está vacío, Unreal (y Make It Real) revientan con \"Array index out of bounds\"."
+  ],
+  "api": ["TArray", "TArray::Num", "FVector::DistSquared", "FVector::Dist", "AActor::GetActorLocation", "nullptr"]
+}

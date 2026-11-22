@@ -1,0 +1,24 @@
+{
+  "id": "09-te-ve-el-guardia",
+  "number": 9,
+  "title": "¿Te ve el guardia?",
+  "difficulty": "Difícil",
+  "summary": "Cono de visión: distancia + ángulo. Se comprueba en cada frame mientras el monigote se mueve.",
+  "files": [
+    { "name": "Guard.cpp", "editable": true },
+    { "name": "Guard.h", "editable": false },
+    { "name": "Monigote.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "cruza-por-delante", "name": "Cruza por delante" },
+    { "id": "se-acerca-de-frente", "name": "Se acerca de frente" },
+    { "id": "por-detras", "name": "Por detrás" },
+    { "id": "por-el-lado", "name": "Por el lado" }
+  ],
+  "hints": [
+    "Son dos condiciones: distancia <= SightRadius Y ángulo <= HalfAngleDegrees.",
+    "El ángulo es el del ejercicio 4: DotProduct(GetActorForwardVector(), DirecciónNormalizadaAlObjetivo) >= Cos(medio ángulo).",
+    "Si quieres ver el ángulo en grados: FMath::RadiansToDegrees(FMath::Acos(Dot))."
+  ],
+  "api": ["FVector::DotProduct", "FVector::SizeSquared", "FMath::Cos", "FMath::DegreesToRadians", "FMath::Square", "AActor::GetActorForwardVector"]
+}

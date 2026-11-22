@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-ink-950: #07080b;
+  --color-ink-900: #0b0d12;
+  --color-ink-850: #10131a;
+  --color-ink-800: #151922;
+  --color-ink-700: #1d2230;
+  --color-ink-600: #2a3142;
+  --color-ink-500: #3b4459;
+  --color-ink-400: #66708a;
+  --color-ink-300: #98a1b8;
+  --color-ink-200: #c7cddc;
+  --color-ink-100: #e8ebf2;
+
+  --color-mir-300: #ffb38a;
+  --color-mir-400: #ff8f4d;
+  --color-mir-500: #ff6b1a;
+  --color-mir-600: #e5540b;
+}
+
+html,
+body {
+  background: var(--color-ink-900);
+  color: var(--color-ink-100);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.prose-mir {
+  color: var(--color-ink-200);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+.prose-mir h1,
+.prose-mir h2,
+.prose-mir h3 {
+  font-family: var(--font-display);
+  color: var(--color-ink-100);
+  font-weight: 600;
+  margin: 1.4em 0 0.5em;
+  line-height: 1.25;
+}
+.prose-mir h1 { font-size: 1.35rem; margin-top: 0; }
+.prose-mir h2 { font-size: 1.08rem; }
+.prose-mir h3 { font-size: 0.98rem; }
+.prose-mir p { margin: 0.6em 0; }
+.prose-mir ul,
+.prose-mir ol { margin: 0.6em 0; padding-left: 1.3em; }
+.prose-mir ul { list-style: disc; }
+.prose-mir ol { list-style: decimal; }
+.prose-mir li { margin: 0.25em 0; }
+.prose-mir strong { color: var(--color-ink-100); }
+.prose-mir code {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  background: var(--color-ink-700);
+  border: 1px solid var(--color-ink-600);
+  border-radius: 5px;
+  padding: 0.1em 0.35em;
+  color: #ffb38a;
+}
+.prose-mir pre {
+  background: var(--color-ink-950);
+  border: 1px solid var(--color-ink-700);
+  border-radius: 10px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+.prose-mir pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-ink-200);
+  font-size: 0.8rem;
+}
+.prose-mir blockquote {
+  border-left: 3px solid var(--color-mir-500);
+  background: color-mix(in srgb, var(--color-mir-500) 7%, transparent);
+  padding: 0.5em 0.9em;
+  border-radius: 0 8px 8px 0;
+  margin: 0.8em 0;
+}
+.prose-mir table { border-collapse: collapse; margin: 0.8em 0; font-size: 0.85rem; }
+.prose-mir th,
+.prose-mir td { border: 1px solid var(--color-ink-600); padding: 0.3em 0.6em; text-align: left; }
+
+code,
+pre,
+kbd,
+.font-mono {
+  font-variant-ligatures: none;
+}
+
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--color-ink-600) transparent; }
+
+.mir-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}

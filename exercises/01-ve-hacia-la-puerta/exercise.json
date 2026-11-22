@@ -1,0 +1,23 @@
+{
+  "id": "01-ve-hacia-la-puerta",
+  "number": 1,
+  "title": "Ve hacia la puerta",
+  "difficulty": "Fácil",
+  "summary": "Tu primer Tick: calcula la dirección hasta la puerta y mueve al monigote con AddMovementInput.",
+  "files": [
+    { "name": "Monigote.cpp", "editable": true },
+    { "name": "Monigote.h", "editable": false },
+    { "name": "Door.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "delante", "name": "Puerta delante" },
+    { "id": "lejos-en-diagonal", "name": "Lejos y en diagonal" },
+    { "id": "detras", "name": "Puerta a la espalda" }
+  ],
+  "hints": [
+    "Restar dos posiciones te da un vector que va de una a otra: Destino - Origen.",
+    "AddMovementInput solo necesita la dirección. Usa GetSafeNormal() para quedarte con un vector de longitud 1.",
+    "Comprueba que TargetDoor no es nullptr antes de usarlo: if (!TargetDoor) { return; }"
+  ],
+  "api": ["AActor::Tick", "AActor::GetActorLocation", "FVector::GetSafeNormal", "APawn::AddMovementInput", "nullptr"]
+}

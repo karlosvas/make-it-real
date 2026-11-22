@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import ExerciseApp from '../../components/ExerciseApp.tsx';
+import { loadExercises } from '../../lib/exercises';
+import type { Exercise, ExerciseLink } from '../../lib/types';
+
+export function getStaticPaths() {
+  const all = loadExercises();
+  const link = (e?: Exercise): ExerciseLink | null => (e ? { id: e.id, number: e.number, title: e.title } : null);
+  return all.map((exercise, i) => ({
+    params: { id: exercise.id },
+    props: { exercise, prev: link(all[i - 1]), next: link(all[i + 1]) },
+  }));
+}
+
+const { exercise, prev, next } = Astro.props;
+---
+
+<Base title={`${exercise.number}. ${exercise.title} · Make It Real`} description={exercise.summary} fullscreen>
+  <ExerciseApp client:only="react" exercise={exercise} prev={prev} next={next} />
+</Base>

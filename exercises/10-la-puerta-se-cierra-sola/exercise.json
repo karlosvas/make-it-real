@@ -1,0 +1,22 @@
+{
+  "id": "10-la-puerta-se-cierra-sola",
+  "number": 10,
+  "title": "La puerta se cierra sola",
+  "difficulty": "Difícil",
+  "summary": "Temporizadores de Unreal: SetTimer, FTimerHandle y punteros a métodos. ¿Qué pasa si la abres dos veces?",
+  "files": [
+    { "name": "Door.cpp", "editable": true },
+    { "name": "Door.h", "editable": false },
+    { "name": "Monigote.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "se-cierra-sola", "name": "Se cierra sola" },
+    { "id": "reabrir", "name": "Abrir otra vez antes de que se cierre" }
+  ],
+  "hints": [
+    "GetWorldTimerManager().SetTimer(Handle, this, &ADoor::Close, Segundos, false);",
+    "El último parámetro es bLoop: con false se llama una sola vez.",
+    "Reutiliza siempre el mismo FTimerHandle (CloseTimerHandle): si ya había un temporizador, SetTimer lo reinicia."
+  ],
+  "api": ["AActor::GetWorldTimerManager", "FTimerManager::SetTimer", "FTimerManager::ClearTimer", "FTimerHandle", "UE_LOG"]
+}

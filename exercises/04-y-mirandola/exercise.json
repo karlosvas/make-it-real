@@ -1,0 +1,25 @@
+{
+  "id": "04-y-mirandola",
+  "number": 4,
+  "title": "Y además, mirándola",
+  "difficulty": "Media",
+  "summary": "Solo se abre si está delante Y mirando a la puerta (como mucho 45°). El producto escalar como ángulo.",
+  "files": [
+    { "name": "Door.cpp", "editable": true },
+    { "name": "Door.h", "editable": false },
+    { "name": "Monigote.h", "editable": false }
+  ],
+  "scenarios": [
+    { "id": "mirando", "name": "Delante y mirando" },
+    { "id": "de-espaldas", "name": "Delante, de espaldas" },
+    { "id": "mirando-de-lado", "name": "Delante, girado 70°" },
+    { "id": "casi-de-frente", "name": "Delante, girado 30°" },
+    { "id": "detras-mirando", "name": "Detrás y mirando" }
+  ],
+  "hints": [
+    "Who->GetActorForwardVector() es hacia dónde mira el monigote.",
+    "La dirección del monigote hacia la puerta es la contraria a la de la puerta hacia el monigote: -DoorToWho.",
+    "Si A y B miden 1, DotProduct(A, B) es el coseno del ángulo entre ellos. Compara con FMath::Cos(FMath::DegreesToRadians(45.0))."
+  ],
+  "api": ["AActor::GetActorForwardVector", "FVector::DotProduct", "FMath::Cos", "FMath::DegreesToRadians", "FMath::Acos", "FMath::RadiansToDegrees"]
+}
